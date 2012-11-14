@@ -156,7 +156,19 @@ Prefix[] binaryPrefixes = sort(
 
 Prefix binaryPrefix(Integer power) = selectPrefix(binaryPrefixes);
 
-
+//TODO For formatting dates it would be really useful to be able to append 
+//ordinal abbreviations such as st, nd rd, th (1st, 2nd, 3rd and 4th)
+alias Ordinal<T> = Callable<String, T>;
+String englishOrdinal(Integer i) {
+    if (i % 10 == 1 && i % 100 != 11) {
+        return "st";
+    } else if (i % 10 == 2 && i % 100 != 12) {
+        return "nd";
+    } else if (i % 10 == 3 && i % 100 != 13) {
+        return "rd";
+    }
+    return "th";
+}
 /*
 scaled{
     unit="meters/second";

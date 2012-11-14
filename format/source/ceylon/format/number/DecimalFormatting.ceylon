@@ -4,20 +4,17 @@ import ceylon.math.decimal { Decimal }
 import ceylon.collection { HashMap }
 
 shared abstract class Quantity() {
-    //shared formal void formatTo(Symbols symbols, StringBuilder builder);
 }
 
 shared object undefinedQuantity extends Quantity() {
-    //shared actual void formatTo(NumberSymbols symbols, StringBuilder builder) {
-    //    builder.append(symbols.undefined);
-    //}
 }
 
 shared class Digits(String digit, 
             doc "true to trim leading zeros, false to trim trailing zeros"
             Boolean stripLeading) 
         extends Quantity() {
-    
+    //TODO a ceylon.math::Decimal may have significant digits
+    //in which case we should not be trimming them
     doc "The digits sequence"
     shared String digits;
     
@@ -37,35 +34,37 @@ shared class Digits(String digit,
         digits = digit.span(0, digit.size-index-1);
     }
     
-    doc "Another instance with the given digit appended"
-    shared Digits append(Character digit) {
-        return Digits(digits + digit.string, stripLeading);
+    doc "Another instance with the given digits appended"
+    shared Digits append(String digits) {
+        return Digits(this.digits + digits, stripLeading);
     }
     
-    doc "Another instance with the given digit prepended"
-    shared Digits prepend(Character digit) {
-        return Digits(digit.string + digits, stripLeading);
+    doc "Another instance with the given digits prepended"
+    shared Digits prepend(String digits) {
+        return Digits(digits + this.digits, stripLeading);
     }
     
-    shared Character initialDigit {
-        value result = digits[0];
-        assert(exists result);
+    shared String initialDigits(Integer n) {
+        value result = digits.segment(0, n);
+        //TODO what if there are not enough initial digits?
         return result;
     }
     
-    doc "Another the the initial (most significant) digit removed"
-    shared Digits initialDropped {
+    doc "Another instance the initial `n` (most significant) digits removed"
+    shared Digits initialDropped(Integer n) {
+        //TODO what if there are not enough initial digits?
         return Digits(digits.terminal(digits.size - 1), stripLeading);
     }
     
-    shared Character terminalDigit {
-        value result = digits[digits.size - 1];
-        assert(exists result);
+    shared String terminalDigits(Integer n) {
+        //TODO what if there are not enough terminal digits?
+        value result = digits.segment(digits.size - n, n);
         return result;
     }
     
     doc "Another the the terminal (least significant) digit removed"
-    shared Digits terminalDropped {
+    shared Digits terminalDropped(Integer n) {
+        //TODO what if there are not enough terminal digits?
         return Digits(digits.initial(digits.size - 1), stripLeading);
     }
 }
@@ -80,51 +79,32 @@ shared object infiniteQuantity extends SignedQuantity(false) {
 }
 shared object negativeInfiniteQuantity extends SignedQuantity(true) {
 }
-    //shared actual void formatTo(NumberSymbols symbols, StringBuilder builder) {
-    //    builder.append(negative then symbols.mantissaSymbols.negativeSignPrefix else symbols.mantissaSymbols.positiveSignPrefix)
-    //        .append(symbols.infinity)
-    //        .append(negative then symbols.mantissaSymbols.negativeSignSuffix else symbols.mantissaSymbols.positiveSignSuffix);            
-    //}
+
 shared class DecimalQuantity(Boolean negative, wholeDigits, fractionDigits) extends SignedQuantity(negative) {
     shared Digits wholeDigits;
     shared Digits fractionDigits;
     
-    doc "An instance with the radix point shifted to the right one digit"
-    shared default DecimalQuantity scaledUp {
+    doc "Another instance with the radix point shifted `n` digits to the right. 
+         Equivalently `this × baseⁿ`"
+    shared DecimalQuantity scaled(Integer n) {
+        if (n == 0) {
+            return this;
+        }
         return DecimalQuantity(negative,
             wholeDigits.append(fractionDigits.initialDigit),
             fractionDigits.initialDropped);
     }
     
-    doc "An instance with the radix point shifted to the left one digit"
-    shared default DecimalQuantity scaledDown {
-        return DecimalQuantity(negative,
-            wholeDigits.terminalDropped,
-            fractionDigits.prepend(wholeDigits.terminalDigit));
-    }
 }
 
 shared class ExponentialQuantity(Boolean negative, Digits wholeDigits, Digits fractionDigits, negativeExponent, exponentDigits) extends DecimalQuantity(negative, wholeDigits, fractionDigits) {
     shared Boolean negativeExponent;
     shared Digits exponentDigits;
     
-    /*void formatMantissaTo(ExponentialSymbols symbols, StringBuilder builder) {
-        symbols.mantissaSymbols.digit(digit)
-        if (exists fractionDigits) {
-            
-        }
+    shared ExponentialQuantity exponentIncremented(Integer increment) {
+        
     }
-    void formatExponentTo(ExponentialSymbols symbols, StringBuilder builder) {
-        //TODO
-    }
-    shared actual void formatTo(NumberSymbols symbols, StringBuilder builder) {
-        //TODO This is assuming the mantissa comes before the exponent
-        //which might not be true, though I don't know of a counter example
-        builder.append(negative then symbols.mantissaSymbols.negativeSignPrefix else symbols.mantissaSymbols.positiveSignPrefix);
-        formatMantissaTo(symbols, builder);
-        formatExponentTo(symbols, builder);
-        builder.append(negative then symbols.mantissaSymbols.negativeSignSuffix else symbols.mantissaSymbols.positiveSignSuffix);
-    }*/
+
 }
 
 
@@ -296,17 +276,6 @@ shared Quantity parseDecimalNotation(String notation) {
 //TODO exponents
 //TODO control over max digits
 //TODO control over what to do when number too big for max digits
-/*
-shared class DecimalFormatter<T>(DecimalNotation<T> dn,
-ExponentialSymbols symbols) satisfies Formatter<T> given T satisfies Object {
-
-    shared actual void formatTo(T thing, StringBuilder builder) {
-        value notation = dn.decimalNotation(thing);
-        value parser = DecimalNotationParser(notation);
-        value rep = parser.parse();
-        rep.formatTo(symbols, builder);
-    }
-}*/
 
 doc "`DecimalNotation` implementation for `Float`"
 shared object floatDecimalNotation satisfies DecimalNotation<Float> {
@@ -335,56 +304,7 @@ shared object decimalDecimalNotation satisfies DecimalNotation<Decimal> {
         return parseDecimalNotation(number.string);
     }
 }
-/*
-doc "Formatter for the `undefinedQuantity`"
-see (undefinedQuantity)
-class UndefinedFormatter(String undefinedSymbol, Formatter<SignedQuantity> signed) satisfies Formatter<Quantity> {
-    
-    shared actual void formatTo(Quantity thing, StringBuilder builder) {
-        if (thing==undefinedQuantity) {
-            builder.append(undefinedSymbol);
-        } else {
-            assert (is SignedQuantity thing);
-            signed.formatTo(thing, builder);
-        }
-    }
-}
 
-class SpecialCaseFormatter(Correspondence<Quantity, String> symbols, Formatter<Quantity> alternative) satisfies Formatter<Quantity> {
-    
-    shared actual void formatTo(Quantity thing, StringBuilder builder) {
-        if (exists symbol=symbols[thing]) {
-            builder.append(symbol);
-        } else {
-            alternative.formatTo(thing, builder);
-        }
-    }
-}
-
-doc "Formatter for signed quantities"
-class SignFormatter(String negative, String positive="") satisfies Formatter<SignedQuantity> {
-    shared SignFormatter withNegative(String negative) {
-        return SignFormatter(negative, positive);
-    }
-    shared SignFormatter withPositive(String negative) {
-        return SignFormatter(negative, positive);
-    }
-    shared actual void formatTo(SignedQuantity thing, StringBuilder builder) {
-        builder.append(thing.negative then negative else positive);
-    }
-}
-
-doc "Formatter for infinite and finite magnitudes"
-class MagnitudeFormatter(String infinitySymbol, Formatter<SignedQuantity> alt) satisfies Formatter<SignedQuantity>{
-    shared actual void formatTo(SignedQuantity thing, StringBuilder builder) {
-        if (thing == infiniteQuantity) {
-            builder.append(infinitySymbol);
-        } else {
-            alt.formatTo(thing, builder);
-        }
-    }
-}
-*/
 doc "Formatter for a goup of digits"
 class DigitsFormatter(numerals = decimalDigits,
                             digitGrouping = noDigitGrouping) satisfies Formatter<Digits> {
@@ -412,33 +332,6 @@ class DigitsFormatter(numerals = decimalDigits,
         }
     }
 }
-/*
-class ExponentialFormatter(wholeFormatter, radixPoint=".", fractionFormatter=wholeFormatter) satisfies Formatter<ExponentialQuantity> {
-    DigitsFormatter wholeFormatter;
-    String radixPoint;
-    DigitsFormatter fractionFormatter;
-    shared ExponentialFormatter withRadixPoint(String radixPoint) {
-        return ExponentialFormatter(wholeFormatter, radixPoint, fractionFormatter);
-    }
-    shared actual void formatTo(ExponentialQuantity thing, StringBuilder builder) {
-        wholeFormatter.formatTo(thing.wholeDigits, builder);
-        builder.append(radixPoint);
-        fractionFormatter.formatTo(thing.fractionDigits, builder);
-    }
-}
-
-class DecimalFormatter<T>(DecimalNotation<T> notation, Formatter<Quantity> formatter) satisfies Formatter<T> {
-    shared actual void formatTo(T thing, StringBuilder builder) {
-        formatter.formatTo(notation.decimalNotation(thing), builder);
-    }
-}
-
-Formatter<Quantity> arabic() {
-    return UndefinedFormatter("NaN", 
-        CompoundFormatter<SignedQuantity>({SignFormatter("-"),
-            MagnitudeFormatter("Infinity", 
-                ExponentialFormatter(DigitsFormatter()))}));
-}*/
 
 class StandardFormatter<T>(DecimalNotation<T> notation,
 undefinedSymbol,
@@ -507,23 +400,3 @@ exponentFormatter=DigitsFormatter(decimalDigits, noDigitGrouping)) satisfies For
     
 }
 
-/*
-doc "A decorating Formatter which adds a prefix and/or suffix to a formatted 
-     number if that number is negative"
-shared Formatter<DecimalRepresentation> signAroundDecimal(
-            IntegerSymbols symbols,
-            Formatter<DecimalRepresentation> next) {
-    class Around() satisfies Formatter<DecimalRepresentation> {
-        shared actual void formatTo(DecimalRepresentation number, StringBuilder builder) {
-            builder.append(number.negative then symbols.negativeSignSuffix else symbols.positiveSignPrefix);
-            next.formatTo(number, builder);
-            builder.append(number.negative then symbols.negativeSignSuffix else symbols.positiveSignSuffix);
-        }
-    }
-    return Around();
-}
-
-
-shared Formatter<DecimalRepresentation> fff<T>(NumberSymbols symbols) {
-    return signAroundDecimal(symbols.mantissaSymbols, CompoundFormatter<DecimalRepresentation>(formatters));
-}*/
