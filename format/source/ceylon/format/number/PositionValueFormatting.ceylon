@@ -6,7 +6,7 @@ shared String noDigitGrouping(Integer nd) {
 }
 
 doc "Factory method for digit grouping functions which use a constant group size."
-shared String(Integer) regularDigitGrouping(Integer groupSize, String separator) {
+shared String(Integer) regularDigitGrouping(String separator, Integer groupSize=3) {
     String regularSeparator(Integer nd) {
         return nd != 0 && nd % groupSize == 0 then separator else ""; 
     }
@@ -64,3 +64,21 @@ shared class PositionValueFormatter<Num>(
     //TODO control over what to do when number too big for max digits
     //TODO configuring all this shit from a locale
 }
+
+doc "A decorating Formatter which adds a prefix and/or suffix to a formatted 
+     number if that number is negative"
+shared Formatter<Num> signAround<in Num>(Formatter<Num> next, 
+        String negativePrefix="-", 
+        String positivePrefix="",
+        String negativeSuffix="", 
+        String positiveSuffix="") given Num satisfies Number {
+    class Around() satisfies Formatter<Num> {
+        shared actual void formatTo(Num number, StringBuilder builder) {
+            builder.append(number.negative then negativePrefix else positivePrefix);
+            next.formatTo(number, builder);
+            builder.append(number.negative then negativeSuffix else positiveSuffix);
+        }
+    }
+    return Around();
+}
+

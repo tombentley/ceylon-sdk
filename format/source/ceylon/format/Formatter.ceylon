@@ -16,7 +16,7 @@ shared interface Formatter<in Thing> {
 }
 
 doc "Formats `Object`s using their `string` attribute."
-class ObjectFormatter() 
+shared class ObjectFormatter() 
     satisfies Formatter<Object> {
     shared actual void formatTo(Object thing, StringBuilder builder) {
         builder.append(thing.string);    
@@ -24,14 +24,24 @@ class ObjectFormatter()
 }
 
 doc "Formats `null` using the given representation and delegates 
-     then formatting of all other values to the given formatter."
-class NullFormatter(Formatter<Object> formatter, String nullRepresentation = "null")
+     formatting of all other values to the given formatter."
+shared class NullFormatter(Formatter<Object> formatter, String nullRepresentation = "null")
     satisfies Formatter<Void> {
     shared actual void formatTo(Void thing, StringBuilder builder) {
         if (exists thing) {
             formatter.formatTo(thing, builder);
         } else {
             builder.append(nullRepresentation);
+        }
+    }
+}
+
+doc "A Formatter which formats values by delegating to each of the 
+     formatters in a given sequence."
+shared class CompoundFormatter<in T>(Formatter<T>[] formatters) satisfies Formatter<T>{
+    shared actual void formatTo(T thing, StringBuilder builder) {
+        for (formatter in formatters) {
+            formatter.formatTo(thing, builder);
         }
     }
 }

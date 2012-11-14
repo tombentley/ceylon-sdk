@@ -1,20 +1,9 @@
+doc "The Arabic numerals, 0, 1, 2, 3, 4, 5, 6, 7, 8 and 9"
+Sequence<Character> decimalDigits = {`0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`};
 
-doc "The symbols needed to construct a number in position-value format."
-shared class PositionValueSymbols(positiveSignPrefix = "",
-                                    negativeSignPrefix = "-",
-                                    positiveSignSuffix = "",
-                                    negativeSignSuffix = "",
-                                    digitGrouping = noDigitGrouping,
-                                    point = ".",
-                                    digits = {`0`, `1`, `2`, `3`, `4`, 
-                                                 `5`, `6`, `7`, `8`, `9`}) {
-    shared String positiveSignPrefix;
-    shared String negativeSignPrefix;
-    shared String positiveSignSuffix;
-    shared String negativeSignSuffix;
+shared class DigitSymbols(digits = decimalDigits,
+                            digitGrouping = noDigitGrouping) {
     shared Callable<String, Integer> digitGrouping;
-    doc "The symbol used to indicate the radix point"
-    shared String point;
     doc "The digits"
     shared Sequence<Character> digits;
     shared Character digit(Integer digit) {
@@ -25,27 +14,64 @@ shared class PositionValueSymbols(positiveSignPrefix = "",
     doc "The radix"
     shared Integer radix {
         return digits.size;
-    }
+    }    
+}
+
+doc "The symbols needed to construct a signed non-fractional number in 
+     position-value format."
+shared class IntegerSymbols(
+            Sequence<Character> digits = decimalDigits,
+            Callable<String, Integer> digitGrouping = noDigitGrouping,
+            positiveSignPrefix = "",
+            negativeSignPrefix = "-",
+            positiveSignSuffix = "",
+            negativeSignSuffix = "") 
+        extends DigitSymbols(digits, digitGrouping){
+    shared String positiveSignPrefix;
+    shared String negativeSignPrefix;
+    shared String positiveSignSuffix;
+    shared String negativeSignSuffix;
+}
+
+doc "The symbols needed to construct a signed number in position-value format."
+shared class FractionSymbols(
+            Sequence<Character> digits = decimalDigits,
+            Callable<String, Integer> digitGrouping = noDigitGrouping,
+            String positiveSignPrefix = "",
+            String negativeSignPrefix = "-",
+            String positiveSignSuffix = "",
+            String negativeSignSuffix = "",
+            point = ".") 
+        extends IntegerSymbols(digits, digitGrouping, positiveSignPrefix, negativeSignPrefix, positiveSignSuffix, negativeSignSuffix) {
+    doc "The symbol used to indicate the radix point"
+    shared String point;
+    //TODO Actually there might be two distinct digit grouping, for before and after the radix point 
 }
 
 
-doc "The symbols needed to construct a number in exponential format"
-// We use Unicode "REPLACEMENT CHARACTER" which seems to be the 
-// "standard"
-// see http://www.unicode.org/review/resolved-pri.html#pri74
-shared class ExponentialSymbols(mantissaSymbols = PositionValueSymbols(), 
-        exponentSymbol = "e", exponentSymbols = PositionValueSymbols(),
-        undefined = "�", infinity = "∞") {
+doc "The symbols needed to construct a number in exponential position-value 
+     format, such as 1.0E6"
+shared class ExponentialSymbols(mantissaSymbols = FractionSymbols(), 
+        exponentSymbol = "E", exponentSymbols = IntegerSymbols()) {
     
     doc "The symbols used to format the mantissa"
-    shared PositionValueSymbols mantissaSymbols;
+    shared FractionSymbols mantissaSymbols;
     
     doc "The symbol which separates the mantissa from the exponent"
     shared String exponentSymbol;
     
     doc "The symbols used to format the exponent. The `point` isn't be used."
-    shared PositionValueSymbols exponentSymbols;
-    
+    shared IntegerSymbols exponentSymbols;   
+}
+
+doc "The symbols needed to format a number"
+shared class NumberSymbols(
+// We use Unicode "REPLACEMENT CHARACTER" which seems to be the 
+// "standard"
+// see http://www.unicode.org/review/resolved-pri.html#pri74
+            undefined = "�", 
+            infinity = "∞") 
+        extends ExponentialSymbols() {
     doc "The symbol to output when the value is undefined."
     shared String undefined;
     

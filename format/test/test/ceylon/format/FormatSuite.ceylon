@@ -1,8 +1,9 @@
-import com.redhat.ceylon.sdk.test{Suite, assertEquals, fail}
-import ceylon.format.number { PositionValueFormatter, regularDigitGrouping, signAround, DecimalFormatter, floatDecimalNotation, ExponentialSymbols, PositionValueSymbols }
-import ceylon.math.whole { Whole, wholeNumber }
 import ceylon.collection { HashMap }
 import ceylon.format { Formatter }
+import ceylon.format.number { PositionValueFormatter, regularDigitGrouping, signAround, Quantity, parseDecimalNotation, Digits }
+import ceylon.math.whole { Whole, wholeNumber }
+
+import com.redhat.ceylon.sdk.test { Suite, assertEquals, fail }
 
 void integerPositionValueTests() {
     // Without digit grouping
@@ -24,7 +25,7 @@ void integerPositionValueTests() {
     
     // thousands digit grouping with `,`
     decimal := PositionValueFormatter(
-            10, "0123456789", regularDigitGrouping(3, ","));
+            10, "0123456789", regularDigitGrouping(",", 3));
     for (i in (0..100).chain(900..999)) {
         value r = decimal.format(i);
         assertEquals(i.string, r, i.string);
@@ -123,7 +124,7 @@ void wholePositionValueTests() {
     // slightly funky digit grouping
     variable PositionValueFormatter<Whole> d := 
             PositionValueFormatter<Whole>(wholeNumber(10), digits, 
-                regularDigitGrouping(4, "#"));
+                regularDigitGrouping("#", 4));
     assertEquals("1000", d.format(wholeNumber(1_000)));
     assertEquals("100#0000", d.format(wholeNumber(1_000_000)));
     assertEquals("1000#0000", d.format(wholeNumber(10_000_000)));
@@ -132,7 +133,99 @@ void wholePositionValueTests() {
      
 }
 
-void decimalFormatterTests() {
+void assertWontParse(String s) {
+    try {
+        parseDecimalNotation(s);
+        fail("Unexpectedly parsed as a decimal: '" s "'");
+    } catch (Exception e) {
+    }
+}
+
+void parseDecimalNotationTests() {
+     assertWontParse("");
+     assertWontParse("x");
+     assertWontParse("nan");
+     assertWontParse("Na");
+     assertWontParse("infinity");
+     assertWontParse("+Infinity");
+     assertWontParse("+0");
+     assertWontParse("--0");
+     assertWontParse("--1");
+     assertWontParse("+0.0");
+     assertWontParse("0.0e0");
+     assertWontParse("1.0e10");
+     assertWontParse("1.0EE10");
+     assertWontParse("0.0e-0");
+     assertWontParse("0.0e--0");
+     assertWontParse("0.0E-0");
+     assertWontParse("1.0E-0");
+     assertWontParse("1.0e-10");
+     assertWontParse("1.0.0");
+     assertWontParse("1.0.0E1");
+     assertWontParse("0.0E+0");
+     assertWontParse("1.0E+0");
+     assertWontParse("0.0E1.0");
+     assertWontParse("1.0E1.0");
+     assertWontParse(".");
+     assertWontParse(".0");
+     assertWontParse("0.");
+     assertWontParse("1E10");
+     parseDecimalNotation("0");
+     parseDecimalNotation("1");
+     parseDecimalNotation("2");
+     parseDecimalNotation("3");
+     parseDecimalNotation("4");
+     parseDecimalNotation("5");
+     parseDecimalNotation("6");
+     parseDecimalNotation("7");
+     parseDecimalNotation("8");
+     parseDecimalNotation("9");
+     parseDecimalNotation("10");
+     parseDecimalNotation("00");
+     parseDecimalNotation("-0");
+     parseDecimalNotation("-00");
+     parseDecimalNotation("-1");
+     parseDecimalNotation("-01");
+     parseDecimalNotation("-10");
+     parseDecimalNotation("0.0");
+     parseDecimalNotation("-0.0");
+     parseDecimalNotation("1.0");
+     parseDecimalNotation("-1.0");
+     parseDecimalNotation("1.1");
+     parseDecimalNotation("-1.1");
+     parseDecimalNotation("10.01");
+     parseDecimalNotation("-10.01");
+     parseDecimalNotation("1.0E0");
+     parseDecimalNotation("1.0E1");
+     parseDecimalNotation("1.0E-0");
+     parseDecimalNotation("1.0E-1");
+     parseDecimalNotation("-1.0E0");
+     parseDecimalNotation("-1.0E1");
+     parseDecimalNotation("-1.0E-0");
+     parseDecimalNotation("-1.0E-1");
+     parseDecimalNotation("-1.0E-0");
+     parseDecimalNotation("-1.0E-100000000000000000000000000000000000000000000000000000000");
+}
+
+void digitsTest() {
+    assertEquals("0", Digits("", true).digits);
+    assertEquals("0", Digits("0", true).digits);
+    assertEquals("0", Digits("00", true).digits);
+    assertEquals("0", Digits("000", true).digits);
+    assertEquals("1", Digits("001", true).digits);
+    assertEquals("10", Digits("0010", true).digits);
+    assertEquals("100", Digits("00100", true).digits);
+    
+    assertEquals("0", Digits("", false).digits);
+    assertEquals("0", Digits("0", false).digits);
+    assertEquals("0", Digits("00", false).digits);
+    assertEquals("0", Digits("000", false).digits);
+    assertEquals("001", Digits("001", false).digits);
+    assertEquals("001", Digits("0010", false).digits);
+    assertEquals("001", Digits("00100", false).digits);
+}
+
+/*void decimalFormatterTests() {
     value formatter = DecimalFormatter(floatDecimalNotation, ExponentialSymbols(PositionValueSymbols{point=",";}));
     assertEquals("123,4", formatter.format(123.4));
     assertEquals("1,234e12", formatter.format(123.4E10));
@@ -149,14 +242,16 @@ void decimalFormatterTestsNiceScientific() {
     assertEquals("123.4", formatter.format(123.4));
     assertEquals("1.234×10ⁱ²", formatter.format(123.4E10));
     assertEquals("1.234×10⁻⁸", formatter.format(123.4E-10));
-}
+}*/
 
 class FormatSuite() extends Suite("ceylon.format") {
     shared actual Iterable<String->Void()> suite = {
         "integerFormatting" -> integerPositionValueTests,
         "wholeFormatting" -> wholePositionValueTests,
-        "decimalFormatterTests" -> decimalFormatterTests,
-        "decimalFormatterTestsNiceScientific" -> decimalFormatterTestsNiceScientific
+        "parserTests" -> parseDecimalNotationTests,
+        "digitsTest" -> digitsTest
+        //"decimalFormatterTests" -> decimalFormatterTests,
+        //"decimalFormatterTestsNiceScientific" -> decimalFormatterTestsNiceScientific
     };
 }
 
