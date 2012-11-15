@@ -37,12 +37,25 @@ shared class NullFormatter(Formatter<Object> formatter, String nullRepresentatio
 }
 
 doc "A Formatter which formats values by delegating to each of the 
-     formatters in a given sequence."
-shared class CompoundFormatter<in T>(Formatter<T>[] formatters) satisfies Formatter<T>{
+     given formatters in a given sequence."
+shared class CompoundFormatter<in T>(formatters) satisfies Formatter<T>{
+    shared Formatter<T>[] formatters;//TODO can we use tuple?
     shared actual void formatTo(T thing, StringBuilder builder) {
         for (formatter in formatters) {
             formatter.formatTo(thing, builder);
         }
+    }
+}
+
+doc "A Formatter which unconditionally appends a separator to the output, 
+     irrespective of the value of the thing being formatted. This can be very 
+     useful in conjunction with a `CompoundFormatter`."
+see (CompoundFormatter)
+shared class SeparatorFormatter<in T>(
+            String separator) 
+        satisfies Formatter<T> {
+    shared actual void formatTo(T thing, StringBuilder builder) {
+        builder.append(separator);
     }
 }
 
