@@ -37,7 +37,11 @@ shared class NullFormatter(Formatter<Object> formatter, String nullRepresentatio
 }
 
 doc "A Formatter which formats values by delegating to each of the 
-     given formatters in a given sequence."
+     given `formatters`. This can be useful for constructing a formatter from
+     other formatters which each output only a part of the representation of 
+     the value being formatted, and allows abstraction of the order of those 
+     parts."
+see (compoundFormatter)
 shared class CompoundFormatter<in T>(formatters) satisfies Formatter<T>{
     shared Formatter<T>[] formatters;//TODO can we use tuple?
     shared actual void formatTo(T thing, StringBuilder builder) {
@@ -48,8 +52,9 @@ shared class CompoundFormatter<in T>(formatters) satisfies Formatter<T>{
 }
 
 doc "A Formatter which unconditionally appends a separator to the output, 
-     irrespective of the value of the thing being formatted. This can be very 
-     useful in conjunction with a `CompoundFormatter`."
+     irrespective of the value of the thing being formatted. This can be  
+     used in conjunction with a `CompoundFormatter` to separate different 
+     fields in the representation of a value being formatted."
 see (CompoundFormatter)
 shared class SeparatorFormatter<in T>(
             String separator) 
@@ -57,6 +62,22 @@ shared class SeparatorFormatter<in T>(
     shared actual void formatTo(T thing, StringBuilder builder) {
         builder.append(separator);
     }
+}
+
+doc "Factory method for producing a compound formatter from a series of 
+     separator strings and other formatters."
+see (CompoundFormatter)
+see (SeparatorFormatter)
+CompoundFormatter<T> compoundFormatter<T>(String|Formatter<T>... xs) {
+    value sb = SequenceBuilder<Formatter<T>>();
+    for (x in xs) {
+        if (is String x) {
+            sb.append(SeparatorFormatter<T>(x));
+        } else if (!is String x) { // Thanks Tako!
+            sb.append(x);
+        }
+    } 
+    return CompoundFormatter<T>(sb.sequence);
 }
 
 doc "Surrounds the output from another formatter with the given 
