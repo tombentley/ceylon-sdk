@@ -11,5 +11,4 @@ doc "Facilities for formatting objects, with particular support for formatting
 see(Formatter)
 module ceylon.format '0.1.0' {
     import ceylon.math '0.4';
-    import ceylon.collection '0.4';
 } 
