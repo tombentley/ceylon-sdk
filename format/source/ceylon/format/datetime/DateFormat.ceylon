@@ -257,8 +257,8 @@ shared Formatter<Datetime> isoDate<Datetime>(Gregorian<Datetime> gregorian,
         Formatter<Integer> dayFormatter = bottom;
         sb.append(NumericDayInMonthFormatter(gregorian, dayFormatter));
     }
-    
-    return CompoundFormatter<Datetime>(sb.sequence);
+    assert (nonempty parts=sb.sequence);
+    return CompoundFormatter<Datetime>(parts);
 }
 
 shared Formatter<Datetime> isoTime<Datetime>(Gregorian<Datetime> gregorian,
@@ -301,8 +301,8 @@ shared Formatter<Datetime> isoTime<Datetime>(Gregorian<Datetime> gregorian,
         Formatter<Integer> secondFormatter = bottom;
         sb.append(NumericSecondFormatter(gregorian, secondFormatter));
     }
-    
-    return CompoundFormatter<Datetime>(sb.sequence);
+    assert (nonempty parts=sb.sequence);
+    return CompoundFormatter<Datetime>(parts);
     
 }
 
@@ -354,8 +354,9 @@ shared Formatter<Datetime> isoDateTime<Datetime>(Gregorian<Datetime> gregorian,
         }
         value timeFormatter = isoTime(gregorian, extended, fields-3, fractionDigits);
         sb.append(timeFormatter);
-    }     
-    return CompoundFormatter<Datetime>(sb.sequence);
+    }
+    assert (nonempty parts=sb.sequence);
+    return CompoundFormatter<Datetime>(parts);
 
 }
 //TODO iso time (time only) formatter

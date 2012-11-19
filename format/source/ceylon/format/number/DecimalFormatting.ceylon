@@ -1,7 +1,6 @@
-import ceylon.format { Formatter, CompoundFormatter }
+import ceylon.format { Formatter }
 import ceylon.math.whole { Whole }
 import ceylon.math.decimal { Decimal }
-import ceylon.collection { HashMap }
 
 shared abstract class Quantity() {
 }
@@ -67,6 +66,14 @@ shared class Digits(String digit,
         //TODO what if there are not enough terminal digits?
         return Digits(digits.initial(digits.size - 1), stripLeading);
     }
+    
+    /*shared Digits incremented {
+        
+    }
+    
+    shared Digits decremented {
+        
+    }*/
 }
 
 shared abstract class SignedQuantity(negative) 
@@ -84,7 +91,7 @@ shared class DecimalQuantity(Boolean negative, wholeDigits, fractionDigits) exte
     shared Digits wholeDigits;
     shared Digits fractionDigits;
     
-    doc "Another instance with the radix point shifted `n` digits to the right. 
+    /*doc "Another instance with the radix point shifted `n` digits to the right. 
          Equivalently `this × baseⁿ`"
     shared DecimalQuantity scaled(Integer n) {
         if (n == 0) {
@@ -93,17 +100,23 @@ shared class DecimalQuantity(Boolean negative, wholeDigits, fractionDigits) exte
         return DecimalQuantity(negative,
             wholeDigits.append(fractionDigits.initialDigit),
             fractionDigits.initialDropped);
-    }
+    }*/
     
 }
 
-shared class ExponentialQuantity(Boolean negative, Digits wholeDigits, Digits fractionDigits, negativeExponent, exponentDigits) extends DecimalQuantity(negative, wholeDigits, fractionDigits) {
+shared class ExponentialQuantity(
+            Boolean negative, 
+            Digits wholeDigits, 
+            Digits fractionDigits, 
+            negativeExponent, exponentDigits) 
+        extends DecimalQuantity(negative, wholeDigits, fractionDigits) {
     shared Boolean negativeExponent;
     shared Digits exponentDigits;
     
-    shared ExponentialQuantity exponentIncremented(Integer increment) {
-        
-    }
+    /*shared ExponentialQuantity exponentIncremented(Integer increment) {
+        //TODO We need to flip the sign when we go through zero 
+        ExponentialQuantity(negative, wholeDigits, fractionDigits, negativeExponent, exponentDigits.)
+    }*/
 
 }
 
@@ -314,6 +327,8 @@ class DigitsFormatter(numerals = decimalDigits,
     shared Callable<String, Integer> digitGrouping;
     doc "The digits"
     shared Sequence<Character> numerals;
+    //TODO Max and min widths, Padding (space and zero, or arbitrary)
+    
     shared DigitsFormatter withDigits(Sequence<Character> digits) {
         return DigitsFormatter(digits, digitGrouping);
     }

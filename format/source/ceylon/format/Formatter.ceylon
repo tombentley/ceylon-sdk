@@ -21,7 +21,8 @@ shared class ObjectFormatter()
     shared actual void formatTo(Object item, StringBuilder builder) {
         builder.append(item.string);    
     }
-}
+} 
+
 
 doc "Formats `null` using the given representation and delegates 
      formatting of all other values to the given formatter."
@@ -36,6 +37,11 @@ shared class NullFormatter(Formatter<Object> formatter, String nullRepresentatio
     }
 }
 
+interface C<out Element> {
+    shared formal Element element;
+    shared formal C<Element>? rest;
+}
+
 doc "A cons cell, a singly linked list. Supports efficient 
      (non-allocating) iteration using a `while` loop:
      
@@ -45,18 +51,19 @@ doc "A cons cell, a singly linked list. Supports efficient
              head := h.rest;
          }
      "
-class Cons<out Element>(element, rest) {
+class Cons<out Element>(element, rest) satisfies C<Element>{
     doc "The head element"
-    shared Element element;
+    shared actual Element element;
     doc ""
-    shared Cons<Element>? rest;
+    shared actual Cons<Element>? rest;
 }
 
 doc "Constructs a `Cons` from a sequence of elements, 
      or prepends the elements to the given cons list."
 Cons<Element> cons<in Element>(Sequence<Element> elements, Cons<Element>? tail = null) {
     variable Cons<Element>? head := tail;
-    for (element in elements.reversed) {
+    Element[] x = elements;// work around problem with compiler
+    for (element in x.reversed) {
         head := Cons(element, head);
     }
     assert (exists result=head);
@@ -93,6 +100,14 @@ shared class SeparatorFormatter<in Item>(
         satisfies Formatter<Item> {
     shared actual void formatTo(Item item, StringBuilder builder) {
         builder.append(separator);
+    }
+}
+
+shared class LiveFormatter<in Item>(
+            String() fn) 
+        satisfies Formatter<Item> {
+    shared actual void formatTo(Item item, StringBuilder builder) {
+        builder.append(fn());
     }
 }
 
