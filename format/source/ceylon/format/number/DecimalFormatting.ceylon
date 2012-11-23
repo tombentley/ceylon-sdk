@@ -324,7 +324,7 @@ class DigitsFormatter(numerals = decimalDigits,
     doc "Invoked with an argument `n` to obtain the separator to use 
          between the `n`th numeral and the `n+1`th numeral (counting away 
          from the radix point)."
-    shared Callable<String, Integer> digitGrouping;
+    shared String(Integer) digitGrouping;
     doc "The digits"
     shared Sequence<Character> numerals;
     //TODO Max and min widths, Padding (space and zero, or arbitrary)
@@ -332,7 +332,7 @@ class DigitsFormatter(numerals = decimalDigits,
     shared DigitsFormatter withDigits(Sequence<Character> digits) {
         return DigitsFormatter(digits, digitGrouping);
     }
-    shared DigitsFormatter withDigitGrouping(Callable<String, Integer> digitGrouping) {
+    shared DigitsFormatter withDigitGrouping(String(Integer) digitGrouping) {
         return DigitsFormatter(numerals, digitGrouping);
     }
     shared actual void formatTo(Digits thing, StringBuilder builder) {

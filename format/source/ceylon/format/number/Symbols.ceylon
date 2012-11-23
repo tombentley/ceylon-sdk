@@ -3,7 +3,7 @@ Sequence<Character> decimalDigits = {`0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`
 
 shared class DigitSymbols(digits = decimalDigits,
                             digitGrouping = noDigitGrouping) {
-    shared Callable<String, Integer> digitGrouping;
+    shared String(Integer) digitGrouping;
     doc "The digits"
     shared Sequence<Character> digits;
     shared Character digit(Integer digit) {
@@ -21,7 +21,7 @@ doc "The symbols needed to construct a signed non-fractional number in
      position-value format."
 shared class IntegerSymbols(
             Sequence<Character> digits = decimalDigits,
-            Callable<String, Integer> digitGrouping = noDigitGrouping,
+            String(Integer) digitGrouping = noDigitGrouping,
             positiveSignPrefix = "",
             negativeSignPrefix = "-",
             positiveSignSuffix = "",
@@ -36,7 +36,7 @@ shared class IntegerSymbols(
 doc "The symbols needed to construct a signed number in position-value format."
 shared class FractionSymbols(
             Sequence<Character> digits = decimalDigits,
-            Callable<String, Integer> digitGrouping = noDigitGrouping,
+            String(Integer) digitGrouping = noDigitGrouping,
             String positiveSignPrefix = "",
             String negativeSignPrefix = "-",
             String positiveSignSuffix = "",
@@ -141,7 +141,7 @@ Prefix selectPrefix(Prefix[] prefixes)(Integer power) {
     return best;
 }
 
-Prefix decimalPrefix(Integer power) = selectPrefix(decimalPrefixes);
+Prefix decimalPrefix(Integer power) => selectPrefix(decimalPrefixes)(power);
 
 doc "The prefixes used to form binary multiples"
 see(decimalPrefixes)
@@ -154,11 +154,11 @@ Prefix[] binaryPrefixes = sort(
     Prefix(2, 60, "Ei", "exbi")
 );
 
-Prefix binaryPrefix(Integer power) = selectPrefix(binaryPrefixes);
+Prefix binaryPrefix(Integer power) => selectPrefix(binaryPrefixes)(power);
 
 //TODO For formatting dates it would be really useful to be able to append 
 //ordinal abbreviations such as st, nd rd, th (1st, 2nd, 3rd and 4th)
-alias Ordinal<T> = Callable<String, T>;
+alias Ordinal<T> => String(T);
 String englishOrdinal(Integer i) {
     if (i % 10 == 1 && i % 100 != 11) {
         return "st";

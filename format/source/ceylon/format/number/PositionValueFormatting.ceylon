@@ -22,7 +22,7 @@ shared class PositionValueFormatter<Num>(
             doc "The digit symbols to use. There must be a digit for every number from `0` to `base-1`"
             Correspondence<Num, Character> digits,
             doc "A digit grouping function. Returns the separator to use after printing the `n`<sup>th</sup> digit"
-            String digitGrouping(Integer n) = noDigitGrouping)
+            String digitGrouping(Integer n) => noDigitGrouping(n))
         satisfies Formatter<Num> 
         given Num satisfies Integral<Num>&Number&Invertable<Num> {
     // TODO base and digits should really be declared Integer to be more useful to the caller

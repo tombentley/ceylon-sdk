@@ -82,7 +82,7 @@ shared class CompoundFormatter<in Item>(Sequence<Formatter<Item>> formatters) sa
     // we can iterate a cons without allocating
     Cons<Formatter<Item>> head = cons(formatters);//TODO can we use tuple?
     shared actual void formatTo(Item item, StringBuilder builder) {
-        variable Cons<Formatter<Item>>? node := head;
+        variable C<Formatter<Item>>? node := head;
         while (exists cons=node) {
             cons.element.formatTo(item, builder);
             node := cons.rest;

@@ -81,7 +81,7 @@ doc "Formats `Gregorian` months using their name (which could be an
 class NamedMonthFormatter<Datetime>(
             Gregorian<Datetime> gregorian, 
             doc "The month names, in ascending order from the first month."
-            String[] monthNames //TODO use tuple
+            String[] monthNames //TODO use tuple so the size is known at compile time
             ) 
         extends GregorianFormatter<Datetime>(gregorian) {
     shared actual void formatTo(Datetime thing, StringBuilder builder) {
