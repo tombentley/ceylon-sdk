@@ -12,7 +12,7 @@ shared class Digits(String digit,
             doc "true to trim leading zeros, false to trim trailing zeros"
             Boolean stripLeading) 
         extends Quantity() {
-    //TODO a ceylon.math::Decimal may have significant digits
+    //TODO a ceylon.math::Decimal may have *significant* trailing zeros
     //in which case we should not be trimming them
     doc "The digits sequence"
     shared String digits;
@@ -254,7 +254,7 @@ object decimalNotationParser {
     }
     
     SignedQuantity parseMag(Tokenizer tokenizer, Boolean neg) {
-        if (tokenizer.currentToken == 'I') {
+        if (tokenizer.currentToken == `I`) {
             return parseInfinity(tokenizer, neg);
         }
         return parseDecimal(tokenizer, neg);
@@ -318,8 +318,10 @@ shared object decimalDecimalNotation satisfies DecimalNotation<Decimal> {
     }
 }
 
-doc "Formatter for a goup of digits"
-class DigitsFormatter(numerals = decimalDigits,
+doc "Formatter for a group of digits"
+//TODO This doesn't work because the side we do padding on depends on whether this is 
+// formatting integer or decimal part. 
+shared class DigitsFormatter(numerals = decimalDigits,
                             digitGrouping = noDigitGrouping) satisfies Formatter<Digits> {
     doc "Invoked with an argument `n` to obtain the separator to use 
          between the `n`th numeral and the `n+1`th numeral (counting away 
@@ -328,13 +330,26 @@ class DigitsFormatter(numerals = decimalDigits,
     doc "The digits"
     shared Sequence<Character> numerals;
     //TODO Max and min widths, Padding (space and zero, or arbitrary)
-    
+        // minimum int digits => pad with 0 or space
+        // minimum fraction digits => pad with 0 or space
+        // maximum int digits => what to do? Java truncates on the left (i.e. most significant!)
+        // afaics that just doesn't make sense, so
+        //                  handle it with a callable, or throw
+        // maximum fraction digits => truncate by rounding
+        
+        // max and min width include grouping, radix, sign, exponent
+        // minimum width => pad integer part with 0 or space
+        // maximum width => truncate by rounding if there's a fractional part
+        //                  otherwise either handle it with a callable, or throw
+    // rounding
     shared DigitsFormatter withDigits(Sequence<Character> digits) {
         return DigitsFormatter(digits, digitGrouping);
     }
     shared DigitsFormatter withDigitGrouping(String(Integer) digitGrouping) {
         return DigitsFormatter(numerals, digitGrouping);
     }
+    
+    
     shared actual void formatTo(Digits thing, StringBuilder builder) {
         for (d in thing.digits) {
             value digit = d.distanceFrom(`0`);
@@ -348,39 +363,81 @@ class DigitsFormatter(numerals = decimalDigits,
     }
 }
 
-class StandardFormatter<T>(DecimalNotation<T> notation,
-undefinedSymbol,
-positivePrefix="",
-negativePrefix="-",
-positiveSuffix="",
-negativeSuffix="",
-infiniteSymbol="∞",
-radixPoint=".",
-wholeFormatter=DigitsFormatter(decimalDigits, noDigitGrouping),
-fractionFormatter=DigitsFormatter(decimalDigits, noDigitGrouping),
-exponentPrefix="E",
-exponentSuffix="",
-exponentFormatter=DigitsFormatter(decimalDigits, noDigitGrouping)) satisfies Formatter<T> {
+Boolean defaultExponentialUsage(DecimalQuantity quantity) {
+    Integer exp;
+    if (is ExponentialQuantity quantity) {
+        exp = quantity.exponentDigits.digits.size;
+    } else {
+        exp =0;
+    }
+    value d = quantity.wholeDigits.digits.size + exp;
+    return  d < -6 || 7 < d;    
+}
+
+doc "A general-purpose decimal formatter."
+shared class StandardFormatter<T>(
+            DecimalNotation<T> notation,
+            undefinedSymbol="NaN",
+            positivePrefix="",
+            negativePrefix="-",
+            positiveSuffix="",
+            negativeSuffix="",
+            infiniteSymbol="∞",
+            radixPoint=".",
+            wholeFormatter=DigitsFormatter(decimalDigits, noDigitGrouping),
+            fractionFormatter=DigitsFormatter(decimalDigits, noDigitGrouping),
+            exponentPrefix="E",
+            exponentSuffix="",
+            exponentFormatter=DigitsFormatter(decimalDigits, noDigitGrouping),
+            exponentialUsage=defaultExponentialUsage) 
+        satisfies Formatter<T> {
+    doc "The symbol used for undefined quantities"
     String undefinedSymbol;
+    doc "A prefix appended before the the number if it is positive"
     String positivePrefix;
+    doc "A prefix appended before the the number if it is negative"
     String negativePrefix;
+    doc "A suffix appended after the the number if it is positive"
     String positiveSuffix;
+    doc "A suffix appended after the the number if it is negative"
     String negativeSuffix;
+    doc "The symbol used for infinity"
     String infiniteSymbol;
+    doc "The symbol used for the radix (decimal) point"
     String radixPoint;
+    doc "The formatter used for formatting the interger part of the number"
     DigitsFormatter wholeFormatter;
+    doc "The formatter used for formatting the fractional part of the number"
     DigitsFormatter fractionFormatter;
+    doc "A prefix appended before the exponential part of the number"
     String exponentPrefix;
+    doc "A suffix appended after the exponential part of the number"
     String exponentSuffix;
+    doc "The formatter used for formatting the exponential part of the number"
     DigitsFormatter exponentFormatter;
+    doc "Determines whether a given quantity should be displayed using exponential notation"
+    Boolean(DecimalQuantity) exponentialUsage;
     
     void formatDecimal(DecimalQuantity quantity, StringBuilder builder) {
-        wholeFormatter.formatTo(quantity.wholeDigits, builder);
-        builder.append(radixPoint);
-        fractionFormatter.formatTo(quantity.fractionDigits, builder);
-        if (is ExponentialQuantity quantity) {
-            formatExponential(quantity, builder);
+        if (exponentialUsage(quantity)) {
+            if (is ExponentialQuantity quantity) {
+                quantity.
+            }
+            wholeFormatter.formatTo(quantity.wholeDigits, builder);
+            builder.append(radixPoint);
+            fractionFormatter.formatTo(quantity.fractionDigits, builder);
+            if (is ExponentialQuantity quantity) {
+                formatExponential(quantity, builder);
+            }
+        } else {
+            wholeFormatter.formatTo(quantity.wholeDigits, builder);
+            builder.append(radixPoint);
+            fractionFormatter.formatTo(quantity.fractionDigits, builder);
+            if (is ExponentialQuantity quantity) {
+                formatExponential(quantity, builder);
+            }
         }
+        
     }
    
     void formatExponential(ExponentialQuantity quantity, StringBuilder builder) {

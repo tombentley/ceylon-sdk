@@ -1,6 +1,6 @@
 import ceylon.collection { HashMap }
 import ceylon.format { Formatter }
-import ceylon.format.number { PositionValueFormatter, regularDigitGrouping, signAround, Quantity, parseDecimalNotation, Digits }
+import ceylon.format.number { PositionValueFormatter, regularDigitGrouping, signAround, Quantity, parseDecimalNotation, Digits, StandardFormatter, floatDecimalNotation, integerDecimalNotation }
 import ceylon.math.whole { Whole, wholeNumber }
 
 import com.redhat.ceylon.sdk.test { Suite, assertEquals, fail }
@@ -225,6 +225,51 @@ void digitsTest() {
     assertEquals("001", Digits("00100", false).digits);
 }
 
+void formattingSpecialCases() {
+    variable StandardFormatter<Float> fmt := StandardFormatter<Float>(floatDecimalNotation);
+    assertEquals("NaN", fmt.format(0.0/0.0));
+    assertEquals("∞", fmt.format(1.0/0.0));
+    assertEquals("-∞", fmt.format(-1.0/0.0));
+    
+    fmt := StandardFormatter<Float>{
+        notation=floatDecimalNotation;
+        undefinedSymbol = "Undefined";
+        infiniteSymbol = "Infinity";
+    };
+    assertEquals("Undefined", fmt.format(0.0/0.0));
+    assertEquals("Infinity", fmt.format(1.0/0.0));
+    assertEquals("-Infinity", fmt.format(-1.0/0.0));
+    
+    fmt := StandardFormatter<Float>{
+        notation=floatDecimalNotation;
+        undefinedSymbol = "Undefined";
+        positivePrefix = "+";
+    };
+    assertEquals("Undefined", fmt.format(0.0/0.0));
+    assertEquals("+∞", fmt.format(1.0/0.0));
+    assertEquals("-∞", fmt.format(-1.0/0.0));
+    
+    fmt := StandardFormatter<Float>{
+        notation=floatDecimalNotation;
+        undefinedSymbol = "Undefined";
+        positivePrefix = "+";
+        positiveSuffix = "+";
+        negativePrefix = "(";
+        negativeSuffix = ")";
+    };
+    assertEquals("Undefined", fmt.format(0.0/0.0));
+    assertEquals("+∞+", fmt.format(1.0/0.0));
+    assertEquals("(∞)", fmt.format(-1.0/0.0));
+}
+
+void formattingInteger() {
+    variable StandardFormatter<Integer> fmt := StandardFormatter<Integer>{
+        notation=integerDecimalNotation;
+    };
+    assertEquals("1", fmt.format(1));
+    
+}
+
 /*void decimalFormatterTests() {
     value formatter = DecimalFormatter(floatDecimalNotation, ExponentialSymbols(PositionValueSymbols{point=",";}));
     assertEquals("123,4", formatter.format(123.4));
@@ -249,7 +294,9 @@ class FormatSuite() extends Suite("ceylon.format") {
         "integerFormatting" -> integerPositionValueTests,
         "wholeFormatting" -> wholePositionValueTests,
         "parserTests" -> parseDecimalNotationTests,
-        "digitsTest" -> digitsTest
+        "digitsTest" -> digitsTest,
+        "formattingSpecialCases" -> formattingSpecialCases,
+        "formattingInteger" -> formattingInteger
         //"decimalFormatterTests" -> decimalFormatterTests,
         //"decimalFormatterTestsNiceScientific" -> decimalFormatterTestsNiceScientific
     };
