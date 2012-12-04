@@ -1,9 +1,12 @@
 import ceylon.collection { HashMap }
 import ceylon.format { Formatter }
-import ceylon.format.number { PositionValueFormatter, regularDigitGrouping, signAround, Quantity, parseDecimalNotation, Digits, StandardFormatter, floatDecimalNotation, integerDecimalNotation }
+import ceylon.format.number { PositionValueFormatter, regularDigitGrouping, signAround, parseDecimalNotation, Digits, StandardFormatter, floatDecimalNotation, integerDecimalNotation, ParseException, undefinedQuantity, infiniteQuantity, negativeInfiniteQuantity, ExponentialQuantity }
 import ceylon.math.whole { Whole, wholeNumber }
 
-import com.redhat.ceylon.sdk.test { Suite, assertEquals, fail }
+import com.redhat.ceylon.sdk.test { Suite, assertEquals, fail, assertTrue }
+
+Integer maxInteger = 9223372036854775807;
+Integer minInteger = -9223372036854775808;
 
 void integerPositionValueTests() {
     // Without digit grouping
@@ -137,7 +140,19 @@ void assertWontParse(String s) {
     try {
         parseDecimalNotation(s);
         fail("Unexpectedly parsed as a decimal: '" s "'");
-    } catch (Exception e) {
+    } catch (ParseException e) {
+    }
+}
+
+void assertDecimalNotation(String s, String intDigits, Boolean negative = false, String fractionDigits = "0", Integer exponent = 0) {
+    value q = parseDecimalNotation(s);
+    if (is ExponentialQuantity q) {
+        assertEquals(negative, q.negative, "signs differ");
+        assertEquals(intDigits, q.wholeDigits.digits, "integer parts differ");
+        assertEquals(fractionDigits, q.fractionDigits.digits, "fractional parts differ");    
+        assertEquals(exponent, q.exponent, "exponents differ");
+    } else {
+        fail("Not ExponentialQuantity: " q "");
     }
 }
 
@@ -170,41 +185,49 @@ void parseDecimalNotationTests() {
      assertWontParse(".0");
      assertWontParse("0.");
      assertWontParse("1E10");
-     parseDecimalNotation("0");
-     parseDecimalNotation("1");
-     parseDecimalNotation("2");
-     parseDecimalNotation("3");
-     parseDecimalNotation("4");
-     parseDecimalNotation("5");
-     parseDecimalNotation("6");
-     parseDecimalNotation("7");
-     parseDecimalNotation("8");
-     parseDecimalNotation("9");
-     parseDecimalNotation("10");
-     parseDecimalNotation("00");
-     parseDecimalNotation("-0");
-     parseDecimalNotation("-00");
-     parseDecimalNotation("-1");
-     parseDecimalNotation("-01");
-     parseDecimalNotation("-10");
-     parseDecimalNotation("0.0");
-     parseDecimalNotation("-0.0");
-     parseDecimalNotation("1.0");
-     parseDecimalNotation("-1.0");
-     parseDecimalNotation("1.1");
-     parseDecimalNotation("-1.1");
-     parseDecimalNotation("10.01");
-     parseDecimalNotation("-10.01");
-     parseDecimalNotation("1.0E0");
-     parseDecimalNotation("1.0E1");
-     parseDecimalNotation("1.0E-0");
-     parseDecimalNotation("1.0E-1");
-     parseDecimalNotation("-1.0E0");
-     parseDecimalNotation("-1.0E1");
-     parseDecimalNotation("-1.0E-0");
-     parseDecimalNotation("-1.0E-1");
-     parseDecimalNotation("-1.0E-0");
-     parseDecimalNotation("-1.0E-100000000000000000000000000000000000000000000000000000000");
+     assertWontParse("00");
+     assertWontParse("00.0");
+     assertWontParse("00.0E1");
+     assertWontParse("0.1E1");
+     assertWontParse("0.1E-1");
+     assertTrue(parseDecimalNotation("NaN") == undefinedQuantity);
+     assertTrue(parseDecimalNotation("Infinity") == infiniteQuantity);
+     assertTrue(parseDecimalNotation("-Infinity") == negativeInfiniteQuantity);
+     assertDecimalNotation("0", "0");
+     assertDecimalNotation("1", "1");
+     assertDecimalNotation("2", "2");
+     assertDecimalNotation("3", "3");
+     assertDecimalNotation("4", "4");
+     assertDecimalNotation("5", "5");
+     assertDecimalNotation("6", "6");
+     assertDecimalNotation("7", "7");
+     assertDecimalNotation("8", "8");
+     assertDecimalNotation("9", "9");
+     assertDecimalNotation("10", "10");
+     assertWontParse("00");
+     assertDecimalNotation("-0", "0");
+     assertWontParse("-00");
+     assertDecimalNotation("-1", "1", true);
+     assertDecimalNotation("-01", "1", true);
+     assertDecimalNotation("-10", "10", true);
+     assertDecimalNotation("0.0", "0", false, "0");
+     assertDecimalNotation("-0.0", "0", false, "0");
+     assertDecimalNotation("1.0", "1", false, "0");
+     assertDecimalNotation("-1.0", "1", true, "0");
+     assertDecimalNotation("1.1", "1", false, "1");
+     assertDecimalNotation("-1.1", "1", true, "1");
+     assertDecimalNotation("10.01", "10", false, "01");
+     assertDecimalNotation("-10.01", "10", true, "01");
+     assertDecimalNotation("1.0E0", "1", false, "0");
+     assertDecimalNotation("1.0E1", "1", false, "0", 1);
+     assertWontParse("1.0E-0");
+     assertDecimalNotation("1.0E-1", "1", false, "0", -1);
+     assertDecimalNotation("-1.0E0", "1", true, "0");
+     assertDecimalNotation("-1.0E1", "1", true, "0", 1);
+     assertWontParse("-1.0E-0");
+     assertDecimalNotation("-1.0E-1", "1", true, "0", -1);
+     assertWontParse("-1.0E-0");
+     assertWontParse("-1.0E-10000000000000000000000000000000000000000000000000000000000000000000");
 }
 
 void digitsTest() {
@@ -263,11 +286,18 @@ void formattingSpecialCases() {
 }
 
 void formattingInteger() {
+    //TODO Abstract this test over Integer and Whole
     variable StandardFormatter<Integer> fmt := StandardFormatter<Integer>{
         notation=integerDecimalNotation;
+        function exponentialPolicy(ExponentialQuantity q) {
+            return false;
+        }
     };
-    assertEquals("1", fmt.format(1));
-    
+    for (i in -100..100) {
+        assertEquals(i.string, fmt.format(i), i.string);
+    }
+    assertEquals(maxInteger.string, fmt.format(maxInteger), maxInteger.string);
+    assertEquals(minInteger.string, fmt.format(minInteger), minInteger.string);
 }
 
 /*void decimalFormatterTests() {

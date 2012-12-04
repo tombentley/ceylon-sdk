@@ -158,8 +158,11 @@ Prefix binaryPrefix(Integer power) => selectPrefix(binaryPrefixes)(power);
 
 //TODO For formatting dates it would be really useful to be able to append 
 //ordinal abbreviations such as st, nd rd, th (1st, 2nd, 3rd and 4th)
-alias Ordinal<T> => String(T);
-String englishOrdinal(Integer i) {
+
+doc "For a given ordinal number, produces the corresponding standard 
+     English ordinal indicator suffix. That is one of 
+     'st', 'nd', 'rd' or 'th'."
+String ordinalEn(Integer i) {
     if (i % 10 == 1 && i % 100 != 11) {
         return "st";
     } else if (i % 10 == 2 && i % 100 != 12) {
