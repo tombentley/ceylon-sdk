@@ -163,6 +163,11 @@
             <reposet refid="reposet.run.test"/>
         </ceylon-run>
         
+    	<ceylon-run module="test.ceylon.format/${sdk.version}" run="test.ceylon.format.run"
+            executable="${ceylon.executable}">
+            <reposet refid="reposet.run.test"/>
+        </ceylon-run>
+    	
         <ceylon-run module="test.ceylon.time/${sdk.version}" run="test.ceylon.time.run"
             executable="${ceylon.executable}">
             <reposet refid="reposet.run.test"/>
