@@ -129,7 +129,7 @@ class Numeric12HourFormatter<Datetime>(
             Boolean zeroBased=false) 
         extends GregorianFormatter<Datetime>(gregorian) {
     shared actual void formatTo(Datetime thing, StringBuilder builder) {
-        variable Integer num := gregorian.hour(thing) % 12;
+        variable Integer num = gregorian.hour(thing) % 12;
         if (!zeroBased) {
             num+=1;
         }
@@ -230,9 +230,9 @@ shared Formatter<Datetime> isoDate<Datetime>(Gregorian<Datetime> gregorian,
     //TODO Zero padding, and sign, fractions
     Formatter<Integer> yearFormatter;
     if (yearDigits == 4) {
-        yearFormatter = bottom;
+        yearFormatter = nothing;
     } else {
-        yearFormatter = bottom;
+        yearFormatter = nothing;
     }
     sb.append(NumericYearFormatter(gregorian, yearFormatter));
     
@@ -243,7 +243,7 @@ shared Formatter<Datetime> isoDate<Datetime>(Gregorian<Datetime> gregorian,
     // Months
     if (fields > 1) {
         //TODO Zero padding, fractions
-        Formatter<Integer> monthFormatter = bottom;
+        Formatter<Integer> monthFormatter = nothing;
         sb.append(NumericMonthFormatter(gregorian, monthFormatter));
         
         if (extended) {
@@ -254,7 +254,7 @@ shared Formatter<Datetime> isoDate<Datetime>(Gregorian<Datetime> gregorian,
     // Days
     if (fields > 2) {
         //TODO Zero padding, fractions
-        Formatter<Integer> dayFormatter = bottom;
+        Formatter<Integer> dayFormatter = nothing;
         sb.append(NumericDayInMonthFormatter(gregorian, dayFormatter));
     }
     assert (nonempty parts=sb.sequence);
@@ -276,7 +276,7 @@ shared Formatter<Datetime> isoTime<Datetime>(Gregorian<Datetime> gregorian,
     
     // Hours
     //TODO Zero padding, and sign, fractions
-    Formatter<Integer> hourFormatter = bottom;
+    Formatter<Integer> hourFormatter = nothing;
     
     sb.append(Numeric24HourFormatter(gregorian, hourFormatter));
     
@@ -287,7 +287,7 @@ shared Formatter<Datetime> isoTime<Datetime>(Gregorian<Datetime> gregorian,
     // Minutes
     if (fields > 1) {
         //TODO Zero padding, fractions
-        Formatter<Integer> minuteFormatter = bottom;
+        Formatter<Integer> minuteFormatter = nothing;
         sb.append(NumericMinuteFormatter(gregorian, minuteFormatter));
         
         if (extended) {
@@ -298,7 +298,7 @@ shared Formatter<Datetime> isoTime<Datetime>(Gregorian<Datetime> gregorian,
     // Seconds
     if (fields > 2) {
         //TODO Zero padding, fractions
-        Formatter<Integer> secondFormatter = bottom;
+        Formatter<Integer> secondFormatter = nothing;
         sb.append(NumericSecondFormatter(gregorian, secondFormatter));
     }
     assert (nonempty parts=sb.sequence);

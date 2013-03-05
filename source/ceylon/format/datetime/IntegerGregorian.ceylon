@@ -1,13 +1,13 @@
 
-Integer[][] daysInMonth = {
-    {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 },
-    {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
-};
+Integer[][] daysInMonth = [
+    [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ],
+    [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
+];
 
-Integer[][] cumulativeDaysInMonth = {
-    {31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 },
-    {31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 }
-};
+Integer[][] cumulativeDaysInMonth = [
+    [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 ],
+    [31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 ]
+];
 
 doc "A simple implementation of `Gregorian`, using the usual Integer 
      representation of a date time as the number of milliseconds since 00:00 
@@ -63,7 +63,7 @@ object integerGregorian satisfies Gregorian<Integer> {
 
     shared actual Integer month(Integer datetime) {
         value millisSinceNewYear = datetime - (year(datetime)-1970)*(1000*60*60*24*365);
-        return bottom;
+        return nothing;
     }
 
     shared actual Integer second(Integer datetime) {
@@ -71,11 +71,11 @@ object integerGregorian satisfies Gregorian<Integer> {
     }
 
     shared actual Integer weekInMonth(Integer datetime) {
-        return bottom;
+        return nothing;
     }
 
     shared actual Integer weekInYear(Integer datetime) {
-        return bottom;
+        return nothing;
     }
 
     shared Integer leaps(Integer datetime) {
@@ -93,15 +93,15 @@ object integerGregorian satisfies Gregorian<Integer> {
     }
     
     shared actual String timezoneAbbreviation(Integer datetime) {
-        return bottom;
+        return nothing;
     }
 
     shared actual String timezoneName(Integer datetime) {
-        return bottom;
+        return nothing;
     }
 
     shared actual Integer timezoneOffset(Integer datetime) {
-        return bottom;
+        return nothing;
     }
 }
 
@@ -109,16 +109,16 @@ void main() {
     value t = process.milliseconds;
     
     
-    print("Millisecond: " integerGregorian.millisecond(t) "");
-    print("Second: " integerGregorian.second(t) "");
-    print("Minute: " integerGregorian.minute(t) "");
-    print("Hour: " integerGregorian.hour(t) "");
-    //print("Day in month: " integerGregorian.dayInMonth(t) "");
-    print("Day in week: " integerGregorian.dayInWeek(t) "");
-    //print("Day in year: " integerGregorian.dayInYear(t) "");
-    //print("Week in month: " integerGregorian.weekInMonth(t) "");
-    //print("Week in year: " integerGregorian.weekInYear(t) "");
-    //print("Month: " integerGregorian.month(t) "");
-    print("Year: " integerGregorian.year(t) "");
-    print("Leaps: " integerGregorian.leaps(t) "");
+    print("Millisecond: `` integerGregorian.millisecond(t) ``");
+    print("Second: `` integerGregorian.second(t) ``");
+    print("Minute: `` integerGregorian.minute(t) ``");
+    print("Hour: `` integerGregorian.hour(t) ``");
+    //print("Day in month: `` integerGregorian.dayInMonth(t) ``");
+    print("Day in week: `` integerGregorian.dayInWeek(t) ``");
+    //print("Day in year: `` integerGregorian.dayInYear(t) ``");
+    //print("Week in month: `` integerGregorian.weekInMonth(t) ``");
+    //print("Week in year: `` integerGregorian.weekInYear(t) ``");
+    //print("Month: `` integerGregorian.month(t) ``");
+    print("Year: `` integerGregorian.year(t) ``");
+    print("Leaps: `` integerGregorian.leaps(t) ``");
 }

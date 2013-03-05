@@ -3,14 +3,14 @@ import ceylon.format { Formatter }
 import ceylon.format.number { PositionValueFormatter, regularDigitGrouping, signAround, parseDecimalNotation, Digits, StandardFormatter, floatDecimalNotation, integerDecimalNotation, ParseException, undefinedQuantity, infiniteQuantity, negativeInfiniteQuantity, ExponentialQuantity }
 import ceylon.math.whole { Whole, wholeNumber }
 
-import com.redhat.ceylon.sdk.test { Suite, assertEquals, fail, assertTrue }
+import ceylon.test { assertEquals, fail, assertTrue }
 
 Integer maxInteger = 9223372036854775807;
 Integer minInteger = -9223372036854775808;
 
 void integerPositionValueTests() {
     // Without digit grouping
-    variable Formatter<Integer> decimal := PositionValueFormatter(
+    variable Formatter<Integer> decimal = PositionValueFormatter(
             10, "0123456789");
     for (i in (0..100).chain(999..1_010).chain(1_999..2010)
                        .chain(9_999..10_010).chain(999_999..1_000_100)) {
@@ -27,7 +27,7 @@ void integerPositionValueTests() {
     }
     
     // thousands digit grouping with `,`
-    decimal := PositionValueFormatter(
+    decimal = PositionValueFormatter(
             10, "0123456789", regularDigitGrouping(",", 3));
     for (i in (0..100).chain(900..999)) {
         value r = decimal.format(i);
@@ -52,7 +52,7 @@ void integerPositionValueTests() {
     function hindiGrouping(Integer nd) {
         return nd != 0 && (nd == 3 || (nd > 3 && ((nd-3)%2)==0)) then "," else "";
     }
-    decimal := PositionValueFormatter(
+    decimal = PositionValueFormatter(
             10, "0123456789", hindiGrouping);
     assertEquals("1,000", decimal.format(1_000));
     assertEquals("10,000", decimal.format(10_000));
@@ -61,7 +61,7 @@ void integerPositionValueTests() {
     assertEquals("1,00,00,000", decimal.format(10_000_000));
     
     // hex
-    decimal := PositionValueFormatter(
+    decimal = PositionValueFormatter(
             16, "0123456789abcdef");
     assertEquals("0", decimal.format(0));
     assertEquals("1", decimal.format(1));
@@ -92,19 +92,19 @@ void integerPositionValueTests() {
     
     // bad arguments
     try {
-        decimal := PositionValueFormatter(1, "1");
+        decimal = PositionValueFormatter(1, "1");
         fail();
     } catch (Exception e) {
     }
     
     try {
-        decimal := PositionValueFormatter(0, "1");
+        decimal = PositionValueFormatter(0, "1");
         fail();
     } catch (Exception e) {
     }
     
     try {
-        decimal := PositionValueFormatter(-1, "1");
+        decimal = PositionValueFormatter(-1, "1");
         fail();
     } catch (Exception e) {
     }
@@ -114,18 +114,18 @@ void integerPositionValueTests() {
 
 void wholePositionValueTests() {
     HashMap<Whole, Character> digits = HashMap<Whole, Character>();
-    digits.put(wholeNumber(0), `0`);
-    digits.put(wholeNumber(1), `1`);
-    digits.put(wholeNumber(2), `2`);
-    digits.put(wholeNumber(3), `3`);
-    digits.put(wholeNumber(4), `4`);
-    digits.put(wholeNumber(5), `5`);
-    digits.put(wholeNumber(6), `6`);
-    digits.put(wholeNumber(7), `7`);
-    digits.put(wholeNumber(8), `8`);
-    digits.put(wholeNumber(9), `9`);
+    digits.put(wholeNumber(0), '0');
+    digits.put(wholeNumber(1), '1');
+    digits.put(wholeNumber(2), '2');
+    digits.put(wholeNumber(3), '3');
+    digits.put(wholeNumber(4), '4');
+    digits.put(wholeNumber(5), '5');
+    digits.put(wholeNumber(6), '6');
+    digits.put(wholeNumber(7), '7');
+    digits.put(wholeNumber(8), '8');
+    digits.put(wholeNumber(9), '9');
     // slightly funky digit grouping
-    variable PositionValueFormatter<Whole> d := 
+    variable PositionValueFormatter<Whole> d = 
             PositionValueFormatter<Whole>(wholeNumber(10), digits, 
                 regularDigitGrouping("#", 4));
     assertEquals("1000", d.format(wholeNumber(1_000)));
@@ -139,7 +139,7 @@ void wholePositionValueTests() {
 void assertWontParse(String s) {
     try {
         parseDecimalNotation(s);
-        fail("Unexpectedly parsed as a decimal: '" s "'");
+        fail("Unexpectedly parsed as a decimal: '`` s ``'");
     } catch (ParseException e) {
     }
 }
@@ -152,7 +152,7 @@ void assertDecimalNotation(String s, String intDigits, Boolean negative = false,
         assertEquals(fractionDigits, q.fractionDigits.digits, "fractional parts differ");    
         assertEquals(exponent, q.exponent, "exponents differ");
     } else {
-        fail("Not ExponentialQuantity: " q "");
+        fail("Not ExponentialQuantity: `` q ``");
     }
 }
 
@@ -249,12 +249,12 @@ void digitsTest() {
 }
 
 void formattingSpecialCases() {
-    variable StandardFormatter<Float> fmt := StandardFormatter<Float>(floatDecimalNotation);
+    variable StandardFormatter<Float> fmt = StandardFormatter<Float>(floatDecimalNotation);
     assertEquals("NaN", fmt.format(0.0/0.0));
     assertEquals("∞", fmt.format(1.0/0.0));
     assertEquals("-∞", fmt.format(-1.0/0.0));
     
-    fmt := StandardFormatter<Float>{
+    fmt = StandardFormatter<Float>{
         notation=floatDecimalNotation;
         undefinedSymbol = "Undefined";
         infiniteSymbol = "Infinity";
@@ -263,7 +263,7 @@ void formattingSpecialCases() {
     assertEquals("Infinity", fmt.format(1.0/0.0));
     assertEquals("-Infinity", fmt.format(-1.0/0.0));
     
-    fmt := StandardFormatter<Float>{
+    fmt = StandardFormatter<Float>{
         notation=floatDecimalNotation;
         undefinedSymbol = "Undefined";
         positivePrefix = "+";
@@ -272,7 +272,7 @@ void formattingSpecialCases() {
     assertEquals("+∞", fmt.format(1.0/0.0));
     assertEquals("-∞", fmt.format(-1.0/0.0));
     
-    fmt := StandardFormatter<Float>{
+    fmt = StandardFormatter<Float>{
         notation=floatDecimalNotation;
         undefinedSymbol = "Undefined";
         positivePrefix = "+";
@@ -287,7 +287,7 @@ void formattingSpecialCases() {
 
 void formattingInteger() {
     //TODO Abstract this test over Integer and Whole
-    variable StandardFormatter<Integer> fmt := StandardFormatter<Integer>{
+    variable StandardFormatter<Integer> fmt = StandardFormatter<Integer>{
         notation=integerDecimalNotation;
         function exponentialPolicy(ExponentialQuantity q) {
             return false;
@@ -319,19 +319,3 @@ void decimalFormatterTestsNiceScientific() {
     assertEquals("1.234×10⁻⁸", formatter.format(123.4E-10));
 }*/
 
-class FormatSuite() extends Suite("ceylon.format") {
-    shared actual Iterable<String->Void()> suite = {
-        "integerFormatting" -> integerPositionValueTests,
-        "wholeFormatting" -> wholePositionValueTests,
-        "parserTests" -> parseDecimalNotationTests,
-        "digitsTest" -> digitsTest,
-        "formattingSpecialCases" -> formattingSpecialCases,
-        "formattingInteger" -> formattingInteger
-        //"decimalFormatterTests" -> decimalFormatterTests,
-        //"decimalFormatterTestsNiceScientific" -> decimalFormatterTestsNiceScientific
-    };
-}
-
-shared void run() {
-    FormatSuite().run();
-}

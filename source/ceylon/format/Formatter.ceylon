@@ -27,8 +27,8 @@ shared class ObjectFormatter()
 doc "Formats `null` using the given representation and delegates 
      formatting of all other values to the given formatter."
 shared class NullFormatter(Formatter<Object> formatter, String nullRepresentation = "null")
-    satisfies Formatter<Void> {
-    shared actual void formatTo(Void item, StringBuilder builder) {
+    satisfies Formatter<Anything> {
+    shared actual void formatTo(Anything item, StringBuilder builder) {
         if (exists item) {
             formatter.formatTo(item, builder);
         } else {
@@ -61,10 +61,10 @@ class Cons<out Element>(element, rest) satisfies C<Element>{
 doc "Constructs a `Cons` from a sequence of elements, 
      or prepends the elements to the given cons list."
 Cons<Element> cons<in Element>(Sequence<Element> elements, Cons<Element>? tail = null) {
-    variable Cons<Element>? head := tail;
+    variable Cons<Element>? head = tail;
     Element[] x = elements;// work around problem with compiler
     for (element in x.reversed) {
-        head := Cons(element, head);
+        head = Cons(element, head);
     }
     assert (exists result=head);
     return result;
@@ -82,10 +82,10 @@ shared class CompoundFormatter<in Item>(Sequence<Formatter<Item>> formatters) sa
     // we can iterate a cons without allocating
     Cons<Formatter<Item>> head = cons(formatters);//TODO can we use tuple?
     shared actual void formatTo(Item item, StringBuilder builder) {
-        variable C<Formatter<Item>>? node := head;
+        variable C<Formatter<Item>>? node = head;
         while (exists cons=node) {
             cons.element.formatTo(item, builder);
-            node := cons.rest;
+            node = cons.rest;
         }
     }
 }
@@ -117,7 +117,7 @@ doc "Factory method for producing a compound formatter from a series of
      separator strings and other formatters."
 see (CompoundFormatter)
 see (SeparatorFormatter)
-CompoundFormatter<T> compoundFormatter<T>(String|Formatter<T>... xs) {
+CompoundFormatter<T> compoundFormatter<T>(String|Formatter<T>* xs) {
     value sb = SequenceBuilder<Formatter<T>>();
     for (x in xs) {
         if (is String x) {

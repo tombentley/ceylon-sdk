@@ -17,10 +17,10 @@ shared class Digits(String digit,
     doc "The digits sequence"
     shared String digits;
     
-    variable Integer index := 0;
+    variable Integer index = 0;
     value chars = stripLeading then digit else digit.reversed;
     for (ch in chars) {
-        if (ch != `0`) {
+        if (ch != '0') {
             break;
         }
         index+=1;
@@ -116,7 +116,7 @@ object decimalNotationParser {
     doc "A simple tokenizer"
     class Tokenizer(notation) {
         shared String notation;
-        variable Integer index := 0;
+        variable Integer index = 0;
         doc "The current index"
         shared Integer currentIndex {
             return index;
@@ -143,9 +143,9 @@ object decimalNotationParser {
         }
         shared actual String string {
             StringBuilder pad = StringBuilder();
-            variable Integer i := 0;
+            variable Integer i = 0;
             while (i < index) {
-                pad.appendCharacter(` `);
+                pad.appendCharacter(' ');
                 i++;
             }
             return notation + process.newline + pad.string + "^";
@@ -165,17 +165,17 @@ object decimalNotationParser {
         if ("Infinity" == tokenizer.notation.span(tokenizer.currentIndex, tokenizer.notation.size)) {
             return neg then negativeInfiniteQuantity else infiniteQuantity;
         }
-        throw ParseException("Expecting \"Infinity\" at index " tokenizer.currentIndex "");
+        throw ParseException("Expecting \"Infinity\" at index `` tokenizer.currentIndex ``");
     }
     
     function isNonZeroDigit(Character t) {
-        return t == `1` || t == `2`
-                || t == `3` || t == `4` || t == `5`
-                || t == `6` || t == `7` || t == `8` || t == `9`;
+        return t == '1' || t == '2'
+                || t == '3' || t == '4' || t == '5'
+                || t == '6' || t == '7' || t == '8' || t == '9';
     }
     
     function isDigit(Character t) {
-        return t == `0` || isNonZeroDigit(t);
+        return t == '0' || isNonZeroDigit(t);
     }
     
     function allZeros(String s) {
@@ -185,22 +185,22 @@ object decimalNotationParser {
     doc "    digits           ::=   digit+ ;
              digit            ::=   '0' | nonZeroDigit ;
              nonZeroDigit     ::=   '1' | '2' | '3' | '4' 
-                                  | '5' | '6' | '7' | '8' | '9' ;
-        "
+                                   | '5' | '6' | '7' | '8' | '9' ;
+         "
     String parseDigits(Tokenizer tokenizer, Boolean expectSome) {
         Integer start = tokenizer.currentIndex;
-        variable Character t := tokenizer.currentToken;
+        variable Character t = tokenizer.currentToken;
         while (true) {
             if (isDigit(t)) {
                 if (!tokenizer.hasNext) {
                     return tokenizer.notation.span(start, tokenizer.currentIndex);
                 }
                 tokenizer.eat();
-                t := tokenizer.currentToken;
+                t = tokenizer.currentToken;
                 continue;
             }
             if (expectSome && start == tokenizer.currentIndex) {
-                throw ParseException("Expected at least one digit at index " start " of input '" tokenizer.notation "'");
+                throw ParseException("Expected at least one digit at index `` start `` of input '`` tokenizer.notation ``'");
             }
             return tokenizer.notation.span(start, tokenizer.currentIndex-1);
         }
@@ -210,17 +210,17 @@ object decimalNotationParser {
     
     doc "    fractionalPart   ::=   dot digits ;"
     String parseFractionalPart(Tokenizer tokenizer) {
-        if (tokenizer.currentToken == `.`) {
+        if (tokenizer.currentToken == '.') {
             tokenizer.eat();
             return parseDigits(tokenizer, true);
         }
-        throw ParseException("Expected `.` at index" tokenizer.currentIndex "");
+        throw ParseException("Expected `.` at index `` tokenizer.currentIndex ``");
     }
     
     doc "    decimal          ::=   zero fractionalPart?
                                   | nonZeroDigit digit+ fractionalPart?
                                   | nonZeroDigit fractionalPart (E exponent)? ;
-        "
+         "
     ExponentialQuantity parseDecimal(Tokenizer tokenizer, Boolean neg) {
         String wholeDigits = parseDigits(tokenizer, true);
         String fractionDigits;
@@ -229,12 +229,12 @@ object decimalNotationParser {
         if (tokenizer.hasNext) {
             fractionDigits = parseFractionalPart(tokenizer);
             if (tokenizer.hasNext) {
-                if (tokenizer.currentToken == `E`) {
+                if (tokenizer.currentToken == 'E') {
                     if (wholeDigits.size != 1 || wholeDigits == "0") {
-                        throw ParseException("The whole part of a quantity with an exponent must consist of a single non-zero digit: The whole part of '" tokenizer.notation "' is '" wholeDigits "'");
+                        throw ParseException("The whole part of a quantity with an exponent must consist of a single non-zero digit: The whole part of '`` tokenizer.notation ``' is '`` wholeDigits ``'");
                     }
                     tokenizer.eat();
-                    if (tokenizer.currentToken == `-`) {
+                    if (tokenizer.currentToken == '-') {
                         negativeExponent = true;
                         tokenizer.eat();
                     } else {
@@ -242,7 +242,7 @@ object decimalNotationParser {
                     }
                     exponentDigits = parseDigits(tokenizer, true);
                 } else {
-                    throw ParseException("Expected `E` at index" tokenizer.currentIndex "");
+                    throw ParseException("Expected `E` at index `` tokenizer.currentIndex ``");
                 }
             } else {
                 negativeExponent = false;
@@ -260,9 +260,9 @@ object decimalNotationParser {
             throw ParseException("Too many zeros in integer part");
         }
         if (tokenizer.hasNext) {
-            throw ParseException("Unexpected extra input '" tokenizer.notation[tokenizer.currentIndex...] "' in '" tokenizer.notation "'");
+            throw ParseException("Unexpected extra input '`` tokenizer.notation[tokenizer.currentIndex...] ``' in '`` tokenizer.notation ``'");
         }
-        Integer exp = parseInteger(negativeExponent then "-" + exponentDigits else exponentDigits) ? 0;
+        Integer exp = parseInteger(negativeExponent then "-" + exponentDigits else exponentDigits) else 0;
         if (exp == 0 && negativeExponent) {
             throw ParseException("Negative zero exponent");
         }
@@ -284,7 +284,7 @@ object decimalNotationParser {
     
     doc "    mag              ::=   infinity | decimal ;"
     SignedQuantity parseMag(Tokenizer tokenizer, Boolean neg) {
-        if (tokenizer.currentToken == `I`) {
+        if (tokenizer.currentToken == 'I') {
             return parseInfinity(tokenizer, neg);
         }
         return parseDecimal(tokenizer, neg);
@@ -292,10 +292,10 @@ object decimalNotationParser {
     
     doc "    signMag          ::=   minus? mag ;
              minus            ::=   '-' ;
-        "
+         "
     SignedQuantity parseSignMag(Tokenizer tokenizer) {
         Boolean neg; 
-        if (tokenizer.currentToken == `-`) {
+        if (tokenizer.currentToken == '-') {
             tokenizer.eat();
             neg = true;
         } else {
@@ -308,7 +308,7 @@ object decimalNotationParser {
     throws (ParseException->"If the given string could not be parsed")
     shared Quantity parse(String notation) {
         Tokenizer tokenizer = Tokenizer(notation);
-        if (tokenizer.currentToken == `N`) {
+        if (tokenizer.currentToken == 'N') {
             return parseNaN(tokenizer);
         }
         return parseSignMag(tokenizer);
@@ -415,12 +415,12 @@ shared class DigitsFormatter(numerals = decimalDigits,
     }
     shared actual void formatTo(Digits thing, StringBuilder builder) {
         for (d in thing.digits) {
-            value digit = d.distanceFrom(`0`);
+            value digit = d.integerValue - '0'.integerValue;
             value numeral = numerals[digit];
             if (exists numeral) {
                 builder.appendCharacter(numeral); 
             } else {
-               throw Exception("No numeral for digit " digit "");
+               throw Exception("No numeral for digit `` digit ``");
             }
         }
     }
@@ -499,7 +499,7 @@ shared class StandardFormatter<T>(
         }
         //quantity.wholeDigits.digits.
         wholeFormatter.formatTo(i, builder);
-        if (nonempty f.digits) {
+        if (!f.digits.empty) {
             builder.append(radixPoint);
             fractionFormatter.formatTo(f, builder);
         }

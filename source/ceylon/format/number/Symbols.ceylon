@@ -1,5 +1,5 @@
 doc "The Arabic numerals, 0, 1, 2, 3, 4, 5, 6, 7, 8 and 9"
-Sequence<Character> decimalDigits = {`0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`};
+Sequence<Character> decimalDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 shared class DigitSymbols(digits = decimalDigits,
                             digitGrouping = noDigitGrouping) {
@@ -102,7 +102,7 @@ class Prefix(base, power, symbol, name) satisfies Comparable<Prefix> {
 
 doc "The prefixes used to form decimal multiples and submultiples of SI units"
 see(binaryPrefixes)
-Prefix[] decimalPrefixes = sort( 
+Prefix[] decimalPrefixes = sort({ 
     Prefix(10,   2, "h", "hecto"),
     Prefix(10,   3, "k", "kilo"),
     Prefix(10,   6, "M", "mega"),
@@ -123,18 +123,18 @@ Prefix[] decimalPrefixes = sort(
     Prefix(10, -18, "a", "atto"),
     Prefix(10, -21, "z", "zepto"),
     Prefix(10, -24, "y", "yocto")
-);
+});
 
 Prefix selectPrefix(Prefix[] prefixes)(Integer power) {
     //1e3, 1e4, 1e5 should all use kilo
     assert(nonempty prefixes);
-    variable Prefix best := prefixes.first;
+    variable Prefix best = prefixes.first;
     for (prefix in prefixes) {
         if (prefix.power >= power) {
             if (prefix < best) {
-                best := prefix;
+                best = prefix;
             } else {
-                best := prefix;
+                best = prefix;
             }
         }
     }
@@ -145,14 +145,14 @@ Prefix decimalPrefix(Integer power) => selectPrefix(decimalPrefixes)(power);
 
 doc "The prefixes used to form binary multiples"
 see(decimalPrefixes)
-Prefix[] binaryPrefixes = sort(
+Prefix[] binaryPrefixes = sort({
     Prefix(2, 10, "Ki", "kibi"),
     Prefix(2, 20, "Mi", "mebi"),
     Prefix(2, 30, "Gi", "gibi"),
     Prefix(2, 40, "Ti", "tebi"),
     Prefix(2, 50, "Pi", "pebi"),
     Prefix(2, 60, "Ei", "exbi")
-);
+});
 
 Prefix binaryPrefix(Integer power) => selectPrefix(binaryPrefixes)(power);
 

@@ -11,8 +11,8 @@ doc "Facilities for formatting objects, with particular support for formatting
      
      The `ceylon.format.datetime` package provides `Formatter`s and factories 
      for `Formatter`s which handle dates and times."
-see(Formatter)
+see("ceylon.format.Formatter")
 module ceylon.format '0.1.0' {
-    import ceylon.math '0.4';
+    shared import ceylon.math '0.5';
     import java.base '7';
 } 
