@@ -1,4 +1,4 @@
-import ceylon.time { Date, DateTime, Time, Period, zero }
+import ceylon.time { Date, DateTime, Time, Period, zero, DateRange }
 import ceylon.time.base { DayOfWeek, weekdayOf=dayOfWeek, monthOf, Month, days, january, sunday, ReadableDatePeriod, february}
 import ceylon.time.chronology { impl=gregorian }
 import ceylon.time.internal.math { adjustedMod }
@@ -248,7 +248,12 @@ shared class GregorianDate( Integer dayOfEra )
 
     "Returns the period between this and the given date.
      If this date is after the given date then return zero period"
-    shared actual Period periodTo(Date end) => end.periodFrom(this); 
+    shared actual Period periodTo(Date end) => end.periodFrom(this);
+
+    "Returns the [[DateRange]] between this and given Date"
+    shared actual DateRange to( Date other ) {
+        return DateRange(this, other); 
+    } 
 }
 
 "Returns a gregorian calendar date according to the specified year, month and date values"
