@@ -26,8 +26,11 @@ shared object months {
 "Common properties and constraints of _day_ unit"
 shared object days {
 
-    "Returns the number of days per year"
-    shared Integer perYear(Boolean leapYear=false) => leapYear then 366 else 365;
+    "Number of days per normal year"
+    shared Integer perYear => 365;
+
+    "Number of days per leap year"
+    shared Integer perLeapYear => 366;
 
     "Returns the number of days per month"
     shared Integer perMonth(Month month, Boolean leapYear=false) => month.numberOfDays(leapYear);
@@ -46,11 +49,6 @@ shared object days {
     "The number of days in a 400 year cycle."
     shared Integer perFourCenturies => perCycle;
 
-    "The number of days from year zero to year 1970.
-     There are five 400 year cycles from year zero to 2000.
-     There are 7 leap years from 1970 to 2000."
-    shared Integer toEpoch => (perCycle * 5) - (30 * 365 + 7);
-
     "Number of days in four years"
     shared Integer inFourYears = 1461;
 
@@ -58,7 +56,7 @@ shared object days {
     shared Integer perCentury = 36524;
 
     "Returns number of days from the number of milliseconds."
-    shared Integer fromMillis(Integer millis = 0) => floorDiv(millis, milliseconds.perDay);
+    shared Integer fromMilliseconds(Integer millisecondsIn = 0) => floorDiv(millisecondsIn, milliseconds.perDay);
 
 }
 
@@ -107,4 +105,5 @@ shared object milliseconds {
 
     "Number of milliseconds per day"
     shared Integer perDay =>  hours.perDay * milliseconds.perHour;
+
 }
