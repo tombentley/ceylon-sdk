@@ -66,4 +66,5 @@ by("Stéphane Épardaud", "Tom Bentley")
 license("Apache Software License")
 module ceylon.json "1.1.1" {
     shared import ceylon.collection "1.1.1";
+    shared import ceylon.test "1.1.1";
 }

@@ -1,18 +1,31 @@
+"Contract for stateful iterators, tokenizers etc which have the concept of a 'current position'."
+shared interface Positioned {
+    "The position (in characters) within the input."
+    shared formal Integer position;
+    
+    "The line number within the input."
+    shared formal Integer line;
+    
+    "The column number within the current line."
+    shared formal Integer column;
+    
+    "A string descriptor of the current position."
+    shared String location => "``line``:``column`` (line:column)";
+}
+
 
 "Contract for a tokenizer"
-shared abstract class Tokenizer() {
+shared abstract class Tokenizer() 
+        satisfies Positioned {
     variable Integer index = 0;
     variable Integer line_ = 1;
     variable Integer column_ = 1;
     
-    "The position (in characters) within the input"
-    shared Integer position => index;
+    shared actual Integer position => index;
     
-    "The line number within the input"
-    shared Integer line => line_;
+    shared actual Integer line => line_;
     
-    "The column number within the current line"
-    shared Integer column => column_;
+    shared actual Integer column => column_;
     
     "Whether there is another character"
     shared formal Boolean hasMore;
